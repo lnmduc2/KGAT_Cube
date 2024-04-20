@@ -125,9 +125,9 @@ class NFM(nn.Module):
         
 
         feature_values = self.convert_coo2tensor(feature_values.tocoo()).to('cuda')
-
+        print(self.h.weight.device)
         # Ghép các phần nhỏ của z lại thành một ma trận
-        z = torch.cat(z_list, dim=0).to('cuda')  # (batch_size, embed_dim)
+        z = torch.cat(z_list, dim=0).to('cuda') # (batch_size, embed_dim)
         
         # Prediction layer
         y = self.h(z)  # (batch_size, 1)
