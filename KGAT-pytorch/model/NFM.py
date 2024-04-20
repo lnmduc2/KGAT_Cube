@@ -88,7 +88,7 @@ class NFM(nn.Module):
         """
         feature_values:  (batch_size, n_features), n_features = n_users + n_entities, torch.sparse.FloatTensor
         """
-        
+        self.feature_embed.to('cuda')
         batch_size, n_features = feature_values.shape
         embed_dim = self.feature_embed.shape[1]
         
