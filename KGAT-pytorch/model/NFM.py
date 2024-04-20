@@ -98,7 +98,7 @@ class NFM(nn.Module):
         
         z_list = []
         
-        feature_values = feature_values.coalesce()
+        feature_values = feature_values.to('cpu').coalesce()
         feature_values = sp.sparse.coo_matrix((feature_values.values(), 
                       (feature_values.indices()[0], feature_values.indices()[1])),
                       feature_values.shape).tocsr()
