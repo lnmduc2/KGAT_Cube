@@ -88,7 +88,7 @@ class NFM(nn.Module):
         """
         feature_values:  (batch_size, n_features), n_features = n_users + n_entities, torch.sparse.FloatTensor
         """
-        self.feature_embed.to('cuda')
+        
         batch_size, n_features = feature_values.shape
         embed_dim = self.feature_embed.shape[1]
         
@@ -112,8 +112,8 @@ class NFM(nn.Module):
             chunk = self.convert_coo2tensor(feature_values[start_idx:end_idx, :].tocoo()).to('cuda')  # (chunk_size, n_features)
             
             # Bi-Interaction layer
-            sum_square_embed = torch.mm(chunk, self.feature_embed).pow(2)          # (chunk_size, embed_dim)
-            square_sum_embed = torch.mm(chunk.pow(2), self.feature_embed.pow(2))   # (chunk_size, embed_dim)
+            sum_square_embed = torch.mm(chunk, self.feature_embed.to('cuda')).pow(2)          # (chunk_size, embed_dim)
+            square_sum_embed = torch.mm(chunk.pow(2), self.feature_embed.to('cuda').pow(2))   # (chunk_size, embed_dim)
             z_chunk = 0.5 * (sum_square_embed - square_sum_embed)                  # (chunk_size, embed_dim)
             
             if self.model_type == 'nfm':
