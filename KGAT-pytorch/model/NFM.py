@@ -109,7 +109,7 @@ class NFM(nn.Module):
             start_idx = i * chunk_size
             end_idx = min((i + 1) * chunk_size, batch_size)
             
-            chunk = self.convert_coo2tensor(feature_values[start_idx:end_idx, :]).to('cuda')  # (chunk_size, n_features)
+            chunk = self.convert_coo2tensor(feature_values[start_idx:end_idx, :].tocoo()).to('cuda')  # (chunk_size, n_features)
             
             # Bi-Interaction layer
             sum_square_embed = torch.mm(chunk, self.feature_embed).pow(2)          # (chunk_size, embed_dim)
@@ -124,7 +124,7 @@ class NFM(nn.Module):
             z_list.append(z_chunk)
         
 
-        feature_values = self.convert_coo2tensor(feature_values).to('cuda')
+        feature_values = self.convert_coo2tensor(feature_values.tocoo()).to('cuda')
 
         # Ghép các phần nhỏ của z lại thành một ma trận
         z = torch.cat(z_list, dim=0)  # (batch_size, embed_dim)
