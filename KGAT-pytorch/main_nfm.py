@@ -49,7 +49,7 @@ def evaluate_mp(model, dataloader, Ks, num_processes, device):
     test_user_dict = dataloader.test_user_dict
 
     model.eval()
-    model.to("cpu")
+    model.to("cuda")
 
     user_ids = list(test_user_dict.keys())
     user_ids_batches = [user_ids[i: i + test_batch_size] for i in range(0, len(user_ids), test_batch_size)]
