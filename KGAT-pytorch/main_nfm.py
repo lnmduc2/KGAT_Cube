@@ -19,7 +19,6 @@ from data_loader.loader_nfm import DataLoaderNFM
 
 
 def evaluate_batch(model, dataloader, user_ids, Ks):
-    print("CALLED")
     train_user_dict = dataloader.train_user_dict
     test_user_dict = dataloader.test_user_dict
 
@@ -177,8 +176,6 @@ def train(args):
 
         for iter in range(1, n_batch + 1):
 
-            break
-
             time2 = time()
             pos_feature_values, neg_feature_values = data.generate_train_batch(data.train_user_dict)
             pos_feature_values = pos_feature_values.to(device)
@@ -212,10 +209,9 @@ def train(args):
                 for m in ['precision', 'recall', 'ndcg']:
                     metrics_list[k][m].append(metrics_dict[k][m])
             best_recall, should_stop = early_stopping(metrics_list[k_min]['recall'], args.stopping_steps)
-
+            
             if should_stop:
                 break
-
             if metrics_list[k_min]['recall'].index(best_recall) == len(epoch_list) - 1:
                 save_model(model, args.save_dir, epoch, best_epoch)
                 logging.info('Save model on epoch {:04d}!'.format(epoch))
