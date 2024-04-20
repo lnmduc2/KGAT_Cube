@@ -9,6 +9,7 @@ import scipy.sparse as sp
 import torch.nn as nn
 import torch.optim as optim
 import torch.multiprocessing as mp
+import numpy as np
 
 from model.NFM import NFM
 from parser.parser_nfm import *

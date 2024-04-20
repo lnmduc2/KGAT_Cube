@@ -2,6 +2,8 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 import scipy as sp
+import numpy as np
+
 
 class HiddenLayer(nn.Module):
 
