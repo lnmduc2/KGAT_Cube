@@ -84,7 +84,7 @@ class NFM(nn.Module):
         shape = coo.shape
         return torch.sparse.FloatTensor(i, v, torch.Size(shape))
     
-    def calc_score(self, feature_values):
+    def calc_score(self, feature_values, device):
         """
         feature_values:  (batch_size, n_features), n_features = n_users + n_entities, torch.sparse.FloatTensor
         """
@@ -100,7 +100,7 @@ class NFM(nn.Module):
         
         z_list = []
         
-        feature_values = feature_values.to('cpu').coalesce()
+        feature_values = feature_values.to(device).coalesce()
         feature_values = sp.sparse.coo_matrix((feature_values.values(), 
                       (feature_values.indices()[0], feature_values.indices()[1])),
                       feature_values.shape).tocsr()
@@ -109,11 +109,11 @@ class NFM(nn.Module):
             start_idx = i * chunk_size
             end_idx = min((i + 1) * chunk_size, batch_size)
             
-            chunk = self.convert_coo2tensor(feature_values[start_idx:end_idx, :].tocoo()).to('cuda')  # (chunk_size, n_features)
+            chunk = self.convert_coo2tensor(feature_values[start_idx:end_idx, :].tocoo()).to(device)  # (chunk_size, n_features)
             
             # Bi-Interaction layer
-            sum_square_embed = torch.mm(chunk, self.feature_embed.to('cuda')).pow(2)          # (chunk_size, embed_dim)
-            square_sum_embed = torch.mm(chunk.pow(2), self.feature_embed.to('cuda').pow(2))   # (chunk_size, embed_dim)
+            sum_square_embed = torch.mm(chunk, self.feature_embed.to(device)).pow(2)          # (chunk_size, embed_dim)
+            square_sum_embed = torch.mm(chunk.pow(2), self.feature_embed.to(device).pow(2))   # (chunk_size, embed_dim)
             z_chunk = 0.5 * (sum_square_embed - square_sum_embed)                  # (chunk_size, embed_dim)
             
             if self.model_type == 'nfm':
@@ -124,10 +124,10 @@ class NFM(nn.Module):
             z_list.append(z_chunk)
         
 
-        feature_values = self.convert_coo2tensor(feature_values.tocoo()).to('cuda')
+        feature_values = self.convert_coo2tensor(feature_values.tocoo()).to(device)
         
         # Ghép các phần nhỏ của z lại thành một ma trận
-        z = torch.cat(z_list, dim=0).to('cuda') # (batch_size, embed_dim)
+        z = torch.cat(z_list, dim=0).to(device) # (batch_size, embed_dim)
         
         # Prediction layer
         y = self.h(z)  # (batch_size, 1)
@@ -139,13 +139,13 @@ class NFM(nn.Module):
 
 
 
-    def calc_loss(self, pos_feature_values, neg_feature_values):
+    def calc_loss(self, pos_feature_values, neg_feature_values, device):
         """
         pos_feature_values:  (batch_size, n_features), torch.sparse.FloatTensor
         neg_feature_values:  (batch_size, n_features), torch.sparse.FloatTensor
         """
-        pos_scores = self.calc_score(pos_feature_values)            # (batch_size)
-        neg_scores = self.calc_score(neg_feature_values)            # (batch_size)
+        pos_scores = self.calc_score(pos_feature_values, device)            # (batch_size)
+        neg_scores = self.calc_score(neg_feature_values, device)            # (batch_size)
 
         loss = (-1.0) * torch.log(1e-10 + F.sigmoid(pos_scores - neg_scores))
         loss = torch.mean(loss)
@@ -155,10 +155,10 @@ class NFM(nn.Module):
         return loss
 
 
-    def forward(self, *input, is_train):
+    def forward(self, *input, is_train, device='cuda'):
         if is_train:
-            return self.calc_loss(*input)
+            return self.calc_loss(*input, device)
         else:
-            return self.calc_score(*input)
+            return self.calc_score(*input, device)
 
 

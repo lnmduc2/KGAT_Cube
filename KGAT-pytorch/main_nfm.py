@@ -30,7 +30,7 @@ def evaluate_batch(model, dataloader, user_ids, Ks):
 
     feature_values = dataloader.generate_test_batch(user_ids)
     with torch.no_grad():
-        scores = model(feature_values, is_train=False)              # (batch_size)
+        scores = model(feature_values, is_train=False, device='cpu')              # (batch_size)
 
     rows = [user_idx_map[u] for u in np.repeat(user_ids, n_items).tolist()]
     cols = item_ids * n_users
@@ -49,7 +49,7 @@ def evaluate_mp(model, dataloader, Ks, num_processes, device):
     test_user_dict = dataloader.test_user_dict
 
     model.eval()
-    model.to("cuda")
+    model.to("cpu")
 
     user_ids = list(test_user_dict.keys())
     user_ids_batches = [user_ids[i: i + test_batch_size] for i in range(0, len(user_ids), test_batch_size)]
